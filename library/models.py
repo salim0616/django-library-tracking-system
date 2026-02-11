@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
+# from django.db.models.signals import po
+from datetime import timedelta
 
 class Author(models.Model):
     first_name = models.CharField(max_length=100)
@@ -41,6 +43,15 @@ class Loan(models.Model):
     loan_date = models.DateField(auto_now_add=True)
     return_date = models.DateField(null=True, blank=True)
     is_returned = models.BooleanField(default=False)
+    due_date = models.DateField(null=True)
+    # for populating existing we can have custom migration file where this field can be updated..
 
     def __str__(self):
         return f"{self.book.title} loaned to {self.member.user.username}"
+
+    def save(self, force_insert = ..., force_update = ..., using = ..., update_fields = ...):
+        instance = super().save(force_insert, force_update, using, update_fields)
+        instance.due_date = instance.loan_date + timedelta(days=14)
+        instance.save()
+        return instance
+
